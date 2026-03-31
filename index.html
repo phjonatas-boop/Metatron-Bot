@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>METATRON BOT — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@300;500;700&family=DM+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0a0a0f;
+  --ink2: #12121a;
+  --gold: #e8b84b;
+  --gold-dim: rgba(232,184,75,0.12);
+  --gold-border: rgba(232,184,75,0.22);
+  --teal: #2de0c0;
+  --teal-dim: rgba(45,224,192,0.1);
+  --teal-border: rgba(45,224,192,0.2);
+  --red: #ff4a6e;
+  --surface: rgba(255,255,255,0.03);
+  --surface2: rgba(255,255,255,0.06);
+  --text: #c4cce0;
+  --text-dim: rgba(196,204,224,0.45);
+  --border: rgba(255,255,255,0.07);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Noise texture overlay ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ── Glow orb ── */
+body::after {
+  content: '';
+  position: fixed;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(232,184,75,0.06) 0%, transparent 70%);
+  top: -200px; left: 50%; transform: translateX(-50%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── LOGIN ── */
+#login-screen {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--ink);
+}
+
+.login-card {
+  width: 340px;
+  padding: 40px 36px;
+  background: var(--ink2);
+  border: 1px solid var(--gold-border);
+  border-radius: 20px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.login-symbol {
+  font-size: 2.8rem;
+  margin-bottom: 16px;
+  display: block;
+  filter: drop-shadow(0 0 20px rgba(232,184,75,0.5));
+}
+
+.login-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.login-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  margin-bottom: 28px;
+}
+
+.login-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #eef;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  text-align: center;
+  letter-spacing: 0.1em;
+  outline: none;
+  margin-bottom: 14px;
+  transition: border-color 0.2s;
+}
+.login-input:focus { border-color: var(--gold); }
+
+.login-btn {
+  width: 100%;
+  background: var(--gold);
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  color: #0a0a0f;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.login-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+.login-err { color: var(--red); font-size: 0.78rem; margin-top: 10px; display: none; }
+
+/* ── MAIN APP ── */
+#app { display: none; position: relative; z-index: 1; }
+
+/* ── HEADER ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: rgba(10,10,15,0.92);
+  backdrop-filter: blur(12px);
+  z-index: 50;
+}
+
+.brand {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.brand-icon {
+  font-size: 1.6rem;
+  filter: drop-shadow(0 0 10px rgba(232,184,75,0.6));
+}
+
+.brand-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+}
+
+.brand-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+}
+
+.status-pills { display: flex; gap: 8px; align-items: center; }
+
+.pill {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+}
+
+.dot { width: 6px; height: 6px; border-radius: 50%; }
+.dot-green { background: var(--teal); animation: blink 2s infinite; }
+.dot-gold { background: var(--gold); animation: blink 2s infinite 0.5s; }
+.dot-off { background: #444; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: calc(100vh - 65px);
+}
+
+@media (max-width: 700px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  padding: 10px 10px 6px;
+  text-transform: uppercase;
+}
+
+.nav-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.nav-btn:hover { background: var(--surface2); color: #fff; }
+.nav-btn.active {
+  background: var(--gold-dim);
+  color: var(--gold);
+  border: 1px solid var(--gold-border);
+}
+.nav-btn .icon { font-size: 1.1rem; width: 22px; text-align: center; }
+
+/* ── MAIN CONTENT ── */
+.main { padding: 24px; overflow-y: auto; }
+
+.section { display: none; }
+.section.active { display: block; }
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.section-desc {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin-bottom: 24px;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--ink2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ── CHAT ── */
+.chat-window {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  height: 360px;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+  margin-bottom: 12px;
+}
+
+.chat-window::-webkit-scrollbar { width: 3px; }
+.chat-window::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.msg { display: flex; gap: 8px; align-items: flex-end; }
+.msg.user { flex-direction: row-reverse; }
+
+.avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; flex-shrink: 0;
+}
+.avatar.bot { background: var(--gold-dim); border: 1px solid var(--gold-border); }
+.avatar.user { background: var(--teal-dim); border: 1px solid var(--teal-border); }
+
+.bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+.bubble.bot {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+.bubble.user {
+  background: var(--teal-dim);
+  border: 1px solid var(--teal-border);
+  color: var(--teal);
+  border-bottom-right-radius: 4px;
+}
+
+.chat-input-row {
+  display: flex; gap: 8px;
+}
+
+.chat-input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 16px;
+  color: #eef;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.chat-input:focus { border-color: var(--gold); }
+
+.mic-btn, .send-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  color: var(--text);
+}
+.mic-btn:hover { border-color: var(--teal); color: var(--teal); }
+.mic-btn.active { border-color: var(--red); color: var(--red); animation: recordPulse 1s infinite; }
+.send-btn { background: var(--gold); border-color: var(--gold); color: #0a0a0f; font-weight: 700; }
+.send-btn:hover { filter: brightness(1.15); transform: scale(1.05); }
+
+@keyframes recordPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,74,110,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(255,74,110,0); }
+}
+
+/* Typing */
+.typing { display: flex; gap: 4px; padding: 8px 0; align-items: center; }
+.typing span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold); opacity: 0.6;
+  animation: typingBounce 1.2s infinite;
+}
+.typing span:nth-child(2) { animation-delay: 0.15s; }
+.typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typingBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-7px)} }
+
+/* ── INPUTS / FORMS ── */
+.field { margin-bottom: 14px; }
+.field label {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: var(--teal);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.input, .select, .textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 14px;
+  color: #eef;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input:focus, .select:focus, .textarea:focus { border-color: var(--gold); }
+.textarea { resize: vertical; min-height: 80px; }
+.select { color-scheme: dark; }
+
+.row { display: flex; gap: 10px; }
+.row .field { flex: 1; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 10px 20px;
+  border-radius: 9px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  transition: all 0.2s;
+}
+.btn-gold { background: var(--gold); color: #0a0a0f; }
+.btn-gold:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.btn-teal { background: var(--teal-dim); border: 1px solid var(--teal-border); color: var(--teal); }
+.btn-teal:hover { background: rgba(45,224,192,0.2); }
+.btn-sm { padding: 7px 14px; font-size: 0.72rem; }
+
+/* ── RESULT BOX ── */
+.result-box {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--teal);
+  white-space: pre-wrap;
+  line-height: 1.7;
+  min-height: 80px;
+  margin-top: 12px;
+}
+
+/* ── QUICK CMDS ── */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.chip {
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  border-radius: 20px;
+  padding: 5px 13px;
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.chip:hover { background: rgba(232,184,75,0.22); }
+
+/* ── STATS GRID ── */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+@media (max-width: 500px) { .stats { grid-template-columns: 1fr; } }
+
+.stat {
+  background: var(--ink2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.stat-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--gold);
+  display: block;
+}
+.stat-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  margin-top: 4px;
+}
+
+/* ── ALARM LIST ── */
+.alarm-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px;
+  background: rgba(255,74,110,0.05);
+  border: 1px solid rgba(255,74,110,0.15);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.alarm-time { font-family: 'Syne', sans-serif; font-weight: 700; color: #ff6b84; font-size: 1rem; }
+.alarm-label { flex: 1; font-size: 0.85rem; }
+.alarm-del { background: none; border: none; color: rgba(255,74,110,0.5); cursor: pointer; font-size: 1rem; transition: color 0.2s; }
+.alarm-del:hover { color: var(--red); }
+
+/* ── TELEGRAM SETUP ── */
+.tg-steps { display: flex; flex-direction: column; gap: 12px; }
+.tg-step { display: flex; gap: 12px; align-items: flex-start; }
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(0,136,204,0.15);
+  border: 1px solid rgba(0,136,204,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.72rem;
+  color: #5bf; flex-shrink: 0; margin-top: 1px;
+}
+.step-text { font-size: 0.85rem; line-height: 1.6; color: var(--text); }
+.step-text code {
+  background: rgba(0,136,204,0.12);
+  border-radius: 4px; padding: 1px 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem; color: #5bf;
+}
+
+/* ── COMMANDS TABLE ── */
+.cmd-table { width: 100%; border-collapse: collapse; }
+.cmd-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.83rem;
+}
+.cmd-table tr:last-child td { border-bottom: none; }
+.cmd-table .cmd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--teal);
+  width: 40%;
+}
+.cmd-table .desc { color: var(--text); }
+
+/* ── UPTIME BADGE ── */
+.uptime-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-align: center;
+  padding: 8px 0;
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <span class="login-symbol">⬡</span>
+    <div class="login-title">METATRON BOT</div>
+    <div class="login-sub">DASHBOARD · ACESSO RESTRITO</div>
+    <input type="password" class="login-input" id="login-pwd" placeholder="Senha do painel" />
+    <button class="login-btn" onclick="doLogin()">ENTRAR</button>
+    <div class="login-err" id="login-err">Senha incorreta.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <div class="header">
+    <div class="brand">
+      <span class="brand-icon">⬡</span>
+      <div>
+        <div class="brand-name">METATRON</div>
+        <div class="brand-tag">ASSISTANT · v1.0</div>
+      </div>
+    </div>
+    <div class="status-pills">
+      <div class="pill"><div class="dot dot-green" id="srv-dot"></div><span id="srv-txt">SERVIDOR</span></div>
+      <div class="pill"><div class="dot dot-off" id="tg-dot"></div><span id="tg-txt">TELEGRAM</span></div>
+      <div class="pill"><div class="dot dot-off" id="ai-dot"></div><span id="ai-txt">IA</span></div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="nav-label">Principal</div>
+      <button class="nav-btn active" onclick="nav('chat')"><span class="icon">💬</span> Chat IA</button>
+      <button class="nav-btn" onclick="nav('tiktok')"><span class="icon">🎬</span> TikTok Viral</button>
+      <button class="nav-btn" onclick="nav('alarms')"><span class="icon">⏰</span> Alarmes</button>
+      <button class="nav-btn" onclick="nav('search')"><span class="icon">🔍</span> Pesquisa Web</button>
+      <div class="nav-label">Configurar</div>
+      <button class="nav-btn" onclick="nav('telegram')"><span class="icon">✈️</span> Telegram</button>
+      <button class="nav-btn" onclick="nav('commands')"><span class="icon">📋</span> Comandos</button>
+      <button class="nav-btn" onclick="nav('status')"><span class="icon">📡</span> Status</button>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- ── CHAT ── -->
+      <section class="section active" id="sec-chat">
+        <div class="section-title">Chat com IA</div>
+        <div class="section-desc">Converse com o Metatron usando texto ou voz</div>
+
+        <div class="chips">
+          <div class="chip" onclick="fillChat('Qual o preço do Bitcoin agora?')">💰 Preço BTC</div>
+          <div class="chip" onclick="fillChat('Me dê 5 ideias de conteúdo para TikTok sobre finanças')">🎬 Ideias TikTok</div>
+          <div class="chip" onclick="fillChat('Crie um alarme para 7:00')">⏰ Criar alarme</div>
+          <div class="chip" onclick="fillChat('Pesquise as últimas notícias sobre IA')">🔍 Notícias IA</div>
+          <div class="chip" onclick="fillChat('Me ajude a planejar meu dia de amanhã')">📅 Planejar dia</div>
+        </div>
+
+        <div class="card">
+          <div class="chat-window" id="chat-win">
+            <div class="msg">
+              <div class="avatar bot">⬡</div>
+              <div class="bubble bot">
+                Olá! Sou o Metatron. Estou conectado ao servidor e pronto para executar seus comandos. Fale comigo por texto ou use o microfone! 🎙️
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="Voz">🎙️</button>
+            <input type="text" class="chat-input" id="chat-input" placeholder="Digite um comando ou pergunta..." />
+            <button class="send-btn" onclick="sendChat()">➤</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── TIKTOK ── -->
+      <section class="section" id="sec-tiktok">
+        <div class="section-title">Gerador de Cortes Virais</div>
+        <div class="section-desc">Cole o link do vídeo e gere um roteiro completo para TikTok / Reels</div>
+
+        <div class="card">
+          <div class="card-title">🎬 CONFIGURAR CORTE</div>
+          <div class="field">
+            <label>URL do Vídeo</label>
+            <input type="url" class="input" id="tt-url" placeholder="https://youtube.com/watch?v=... ou qualquer outro link" />
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Estilo do Corte</label>
+              <select class="select" id="tt-style">
+                <option value="viral">🔥 Viral Máximo</option>
+                <option value="educational">📚 Educacional</option>
+                <option value="motivacional">💪 Motivacional</option>
+                <option value="humor">😂 Humor</option>
+                <option value="news">📰 Notícia / Factual</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Duração Alvo</label>
+              <select class="select" id="tt-dur">
+                <option value="30">30 segundos</option>
+                <option value="60">60 segundos</option>
+                <option value="90">90 segundos</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="genTikTok()" id="tt-btn">⚡ GERAR ROTEIRO VIRAL</button>
+          <div class="result-box" id="tt-result">Aguardando URL do vídeo...</div>
+        </div>
+      </section>
+
+      <!-- ── ALARMES ── -->
+      <section class="section" id="sec-alarms">
+        <div class="section-title">Gerenciador de Alarmes</div>
+        <div class="section-desc">Crie alarmes locais ou envie alertas pelo Telegram</div>
+
+        <div class="card">
+          <div class="card-title">⏰ NOVO ALARME</div>
+          <div class="row">
+            <div class="field">
+              <label>Horário</label>
+              <input type="time" class="input" id="al-time" style="color-scheme:dark" />
+            </div>
+            <div class="field">
+              <label>Rótulo</label>
+              <input type="text" class="input" id="al-label" placeholder="Descrição do alarme" />
+            </div>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="addAlarm()">+ CRIAR ALARME</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📋 ALARMES ATIVOS</div>
+          <div id="alarm-list">
+            <div style="color:var(--text-dim);font-size:0.82rem;text-align:center;padding:16px">
+              Nenhum alarme configurado
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── SEARCH ── -->
+      <section class="section" id="sec-search">
+        <div class="section-title">Pesquisa Web</div>
+        <div class="section-desc">Busque informações na internet em tempo real</div>
+
+        <div class="card">
+          <div class="card-title">🔍 BUSCAR</div>
+          <div class="field">
+            <label>Consulta</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="input" id="srch-q" placeholder="O que deseja pesquisar?" style="flex:1" />
+              <button class="btn btn-teal" onclick="doSearch()">BUSCAR</button>
+            </div>
+          </div>
+          <div class="chips" style="margin-top:6px">
+            <div class="chip" onclick="quickSearch('Bitcoin preço hoje')">💰 BTC hoje</div>
+            <div class="chip" onclick="quickSearch('notícias tecnologia IA')">🤖 IA news</div>
+            <div class="chip" onclick="quickSearch('tendências TikTok Brasil')">🎬 TikTok trends</div>
+          </div>
+          <div class="result-box" id="srch-result">Resultados aparecerão aqui...</div>
+        </div>
+      </section>
+
+      <!-- ── TELEGRAM ── -->
+      <section class="section" id="sec-telegram">
+        <div class="section-title">Configurar Telegram</div>
+        <div class="section-desc">Siga os passos para ativar o bot no Telegram</div>
+
+        <div class="card">
+          <div class="card-title">✈️ SETUP DO BOT</div>
+          <div class="tg-steps">
+            <div class="tg-step">
+              <div class="step-num">1</div>
+              <div class="step-text">Abra o Telegram e fale com <code>@BotFather</code>. Envie <code>/newbot</code> e siga as instruções para criar seu bot.</div>
+            </div>
+            <div class="tg-step">
+              <div class="step-num">2</div>
+              <div class="step-text">Copie o token gerado (formato: <code>1234567890:ABC...</code>) e adicione ao arquivo <code>.env</code> como <code>TELEGRAM_TOKEN=SEU_TOKEN</code></div>
+            </div>
+            <div class="tg-step">
+              <div class="step-num">3</div>
+              <div class="step-text">No Railway, adicione as variáveis de ambiente: <code>TELEGRAM_TOKEN</code>, <code>ANTHROPIC_API_KEY</code> e <code>APP_URL</code> (a URL do seu deploy).</div>
+            </div>
+            <div class="tg-step">
+              <div class="step-num">4</div>
+              <div class="step-text">Faça o deploy. O webhook é configurado automaticamente. Envie <code>/start</code> para seu bot e ele responderá!</div>
+            </div>
+            <div class="tg-step">
+              <div class="step-num">5</div>
+              <div class="step-text">Para desenvolvimento local, defina <code>DEV_MODE=true</code> no <code>.env</code>. O bot usará polling em vez de webhook.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🔑 CONFIGURAÇÕES LOCAIS</div>
+          <div class="field">
+            <label>Senha do Painel</label>
+            <input type="password" class="input" id="cfg-newpwd" placeholder="Nova senha (deixe em branco para manter)" />
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="saveLocalConfig()">SALVAR</button>
+        </div>
+      </section>
+
+      <!-- ── COMMANDS ── -->
+      <section class="section" id="sec-commands">
+        <div class="section-title">Referência de Comandos</div>
+        <div class="section-desc">Todos os comandos disponíveis no Telegram</div>
+
+        <div class="card">
+          <div class="card-title">🎬 TIKTOK & VÍDEO</div>
+          <table class="cmd-table">
+            <tr><td class="cmd">/tiktok &lt;url&gt;</td><td class="desc">Gera roteiro viral completo para o vídeo</td></tr>
+            <tr><td class="cmd">/corte &lt;url&gt; viral</td><td class="desc">Corte no estilo viral máximo</td></tr>
+            <tr><td class="cmd">/corte &lt;url&gt; humor</td><td class="desc">Corte no estilo humor/entretenimento</td></tr>
+            <tr><td class="cmd">/corte &lt;url&gt; educacional</td><td class="desc">Corte no estilo educacional</td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">💰 FINANÇAS & PREÇOS</div>
+          <table class="cmd-table">
+            <tr><td class="cmd">/btc</td><td class="desc">Preço atual do Bitcoin em USD e BRL</td></tr>
+            <tr><td class="cmd">/eth</td><td class="desc">Preço atual do Ethereum</td></tr>
+            <tr><td class="cmd">/preco bitcoin</td><td class="desc">Preço de qualquer criptomoeda</td></tr>
+            <tr><td class="cmd">/preco ethereum</td><td class="desc">Preço do Ethereum</td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⏰ ALARMES</div>
+          <table class="cmd-table">
+            <tr><td class="cmd">/alarme 07:30</td><td class="desc">Cria alarme para 7h30</td></tr>
+            <tr><td class="cmd">/alarme 07:30 Academia</td><td class="desc">Alarme com rótulo personalizado</td></tr>
+            <tr><td class="cmd">/alarmes</td><td class="desc">Lista todos os alarmes ativos</td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🔍 PESQUISA</div>
+          <table class="cmd-table">
+            <tr><td class="cmd">/buscar &lt;query&gt;</td><td class="desc">Pesquisa na web e retorna top resultados</td></tr>
+            <tr><td class="cmd">/news &lt;tema&gt;</td><td class="desc">Busca notícias recentes sobre o tema</td></tr>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🗣 LINGUAGEM NATURAL</div>
+          <table class="cmd-table">
+            <tr><td class="cmd">Mensagem livre</td><td class="desc">A IA detecta a intenção e executa o comando correto</td></tr>
+            <tr><td class="cmd">/limpar</td><td class="desc">Limpa o histórico de conversa</td></tr>
+            <tr><td class="cmd">/start</td><td class="desc">Apresentação e lista de comandos</td></tr>
+            <tr><td class="cmd">/ajuda</td><td class="desc">Ajuda detalhada sobre todos os comandos</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── STATUS ── -->
+      <section class="section" id="sec-status">
+        <div class="section-title">Status do Sistema</div>
+        <div class="section-desc">Monitoramento em tempo real do servidor</div>
+
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-val" id="stat-uptime">--</span>
+            <div class="stat-lbl">UPTIME (MIN)</div>
+          </div>
+          <div class="stat">
+            <span class="stat-val" id="stat-tg">--</span>
+            <div class="stat-lbl">TELEGRAM</div>
+          </div>
+          <div class="stat">
+            <span class="stat-val" id="stat-ai">--</span>
+            <div class="stat-lbl">CLAUDE AI</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📡 DETALHES DO SERVIDOR</div>
+          <div class="result-box" id="status-box">Carregando status...</div>
+        </div>
+
+        <div class="uptime-badge" id="uptime-badge">Verificando servidor...</div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ─────────────────────────────────
+const BASE = window.location.origin;
+let dashKey = localStorage.getItem('mk') || 'metatron2025';
+let chatHistory = [];
+let alarms = JSON.parse(localStorage.getItem('m_alarms') || '[]');
+let isRecording = false;
+let recognition = null;
+
+// ── LOGIN ──────────────────────────────────
+function doLogin() {
+  const pwd = document.getElementById('login-pwd').value;
+  dashKey = pwd;
+  localStorage.setItem('mk', pwd);
+  checkStatus().then(ok => {
+    if (ok) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadAlarms();
+      startStatusPolling();
+    } else {
+      document.getElementById('login-err').style.display = 'block';
+    }
+  });
+}
+document.getElementById('login-pwd').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// Auto-login if key saved
+if (dashKey) {
+  checkStatus().then(ok => {
+    if (ok) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadAlarms();
+      startStatusPolling();
+    }
+  });
+}
+
+// ── STATUS ─────────────────────────────────
+async function checkStatus() {
+  try {
+    const r = await fetch(`${BASE}/health`);
+    if (!r.ok) return false;
+    const d = await r.json();
+    updateStatusUI(d);
+    return true;
+  } catch { return false; }
+}
+
+function updateStatusUI(d) {
+  // Pills
+  document.getElementById('srv-dot').className = 'dot dot-green';
+  document.getElementById('srv-txt').textContent = 'ONLINE';
+
+  const tgDot = document.getElementById('tg-dot');
+  tgDot.className = d.telegram ? 'dot dot-gold' : 'dot dot-off';
+  document.getElementById('tg-txt').textContent = d.telegram ? 'TELEGRAM' : 'SEM TOKEN';
+
+  const aiDot = document.getElementById('ai-dot');
+  aiDot.className = d.ai ? 'dot dot-green' : 'dot dot-off';
+  document.getElementById('ai-txt').textContent = d.ai ? 'IA ON' : 'SEM KEY';
+
+  // Stats
+  const mins = Math.floor(d.uptime / 60);
+  document.getElementById('stat-uptime').textContent = mins;
+  document.getElementById('stat-tg').textContent = d.telegram ? '✓' : '✗';
+  document.getElementById('stat-ai').textContent = d.ai ? '✓' : '✗';
+
+  // Status box
+  document.getElementById('status-box').textContent =
+    `STATUS: ONLINE\nTELEGRAM: ${d.telegram ? 'CONFIGURADO' : 'SEM TOKEN'}\nCLAUDE AI: ${d.ai ? 'CONFIGURADO' : 'SEM CHAVE API'}\nMODELO: ${d.model || 'N/A'}\nUPTIME: ${mins} minutos\nTIMESTAMP: ${d.time}`;
+
+  document.getElementById('uptime-badge').textContent = `Última verificação: ${new Date().toLocaleTimeString('pt-BR')}`;
+}
+
+function startStatusPolling() {
+  checkStatus();
+  setInterval(checkStatus, 30000);
+}
+
+// ── NAVIGATION ─────────────────────────────
+function nav(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  const btns = document.querySelectorAll('.nav-btn');
+  const map = ['chat','tiktok','alarms','search','telegram','commands','status'];
+  const idx = map.indexOf(id);
+  if (idx >= 0) btns[idx].classList.add('active');
+  if (id === 'status') checkStatus();
+}
+
+// ── CHAT ───────────────────────────────────
+function addMsg(text, role) {
+  const win = document.getElementById('chat-win');
+  const div = document.createElement('div');
+  div.className = 'msg' + (role === 'user' ? ' user' : '');
+  div.innerHTML = `<div class="avatar ${role}">${role === 'user' ? '👤' : '⬡'}</div><div class="bubble ${role}">${text.replace(/\n/g,'<br>')}</div>`;
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+}
+
+function showTyping() {
+  const win = document.getElementById('chat-win');
+  const div = document.createElement('div');
+  div.className = 'msg'; div.id = 'typing';
+  div.innerHTML = `<div class="avatar bot">⬡</div><div class="bubble bot"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+}
+function removeTyping() { document.getElementById('typing')?.remove(); }
+
+async function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  inp.value = '';
+  addMsg(txt, 'user');
+
+  showTyping();
+  try {
+    const r = await fetch(`${BASE}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-dashboard-key': dashKey },
+      body: JSON.stringify({ message: txt, history: chatHistory.slice(-10) })
+    });
+    const d = await r.json();
+    removeTyping();
+    if (d.reply) {
+      addMsg(d.reply, 'bot');
+      chatHistory.push({ role: 'user', content: txt });
+      chatHistory.push({ role: 'assistant', content: d.reply });
+    } else {
+      addMsg('❌ ' + (d.error || 'Erro'), 'bot');
+    }
+  } catch(e) {
+    removeTyping();
+    addMsg('❌ Servidor offline: ' + e.message, 'bot');
+  }
+}
+
+function fillChat(txt) {
+  document.getElementById('chat-input').value = txt;
+  document.getElementById('chat-input').focus();
+  nav('chat');
+}
+
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendChat();
+});
+
+// ── VOICE ──────────────────────────────────
+function toggleMic() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    addMsg('❌ Use o Chrome para comandos de voz.', 'bot'); return;
+  }
+  if (isRecording) {
+    recognition?.stop(); isRecording = false;
+    document.getElementById('mic-btn').classList.remove('active');
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'pt-BR';
+  recognition.onstart = () => {
+    isRecording = true;
+    document.getElementById('mic-btn').classList.add('active');
+    addMsg('🎙️ Ouvindo...', 'bot');
+  };
+  recognition.onresult = e => {
+    const t = e.results[0][0].transcript;
+    document.getElementById('chat-input').value = t;
+    isRecording = false;
+    document.getElementById('mic-btn').classList.remove('active');
+    sendChat();
+  };
+  recognition.onerror = () => {
+    isRecording = false;
+    document.getElementById('mic-btn').classList.remove('active');
+  };
+  recognition.onend = () => { isRecording = false; document.getElementById('mic-btn').classList.remove('active'); };
+  recognition.start();
+}
+
+// ── TIKTOK ─────────────────────────────────
+async function genTikTok() {
+  const url = document.getElementById('tt-url').value.trim();
+  const style = document.getElementById('tt-style').value;
+  const resultBox = document.getElementById('tt-result');
+  if (!url) { resultBox.textContent = '⚠️ Cole uma URL primeiro.'; return; }
+
+  resultBox.textContent = '⏳ Gerando roteiro viral com IA...';
+  document.getElementById('tt-btn').disabled = true;
+
+  try {
+    const r = await fetch(`${BASE}/api/tiktok`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-dashboard-key': dashKey },
+      body: JSON.stringify({ url, style })
+    });
+    const d = await r.json();
+    resultBox.textContent = d.script || ('❌ ' + d.error);
+  } catch(e) {
+    resultBox.textContent = '❌ Erro: ' + e.message;
+  }
+  document.getElementById('tt-btn').disabled = false;
+}
+
+// ── SEARCH ─────────────────────────────────
+async function doSearch() {
+  const q = document.getElementById('srch-q').value.trim();
+  await performSearch(q);
+}
+
+async function quickSearch(q) {
+  document.getElementById('srch-q').value = q;
+  nav('search');
+  await performSearch(q);
+}
+
+async function performSearch(q) {
+  if (!q) return;
+  const box = document.getElementById('srch-result');
+  box.textContent = '⏳ Pesquisando...';
+  try {
+    const r = await fetch(`${BASE}/api/search?q=${encodeURIComponent(q)}`, {
+      headers: { 'x-dashboard-key': dashKey }
+    });
+    const d = await r.json();
+    if (d.results?.length) {
+      box.textContent = d.results.map((r, i) =>
+        `[${i+1}] ${r.title}\n${r.snippet}\n→ ${r.url}\n`
+      ).join('\n');
+    } else {
+      box.textContent = d.error || 'Nenhum resultado.';
+    }
+  } catch(e) {
+    box.textContent = '❌ Erro: ' + e.message;
+  }
+}
+
+document.getElementById('srch-q')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+// ── ALARMS ─────────────────────────────────
+function addAlarm() {
+  const time = document.getElementById('al-time').value;
+  const label = document.getElementById('al-label').value || 'Alarme';
+  if (!time) return;
+  const alarm = { time, label, id: Date.now() };
+  alarms.push(alarm);
+  saveAlarms();
+  scheduleAlarm(alarm);
+  renderAlarms();
+  document.getElementById('al-time').value = '';
+  document.getElementById('al-label').value = '';
+}
+
+function deleteAlarm(id) {
+  alarms = alarms.filter(a => a.id !== id);
+  saveAlarms();
+  renderAlarms();
+}
+
+function saveAlarms() { localStorage.setItem('m_alarms', JSON.stringify(alarms)); }
+function loadAlarms() { renderAlarms(); alarms.forEach(scheduleAlarm); }
+
+function renderAlarms() {
+  const list = document.getElementById('alarm-list');
+  list.innerHTML = alarms.length ? alarms.map(a => `
+    <div class="alarm-item">
+      <span class="alarm-time">⏰ ${a.time}</span>
+      <span class="alarm-label">${a.label}</span>
+      <button class="alarm-del" onclick="deleteAlarm(${a.id})">🗑️</button>
+    </div>`).join('') :
+    '<div style="color:var(--text-dim);font-size:0.82rem;text-align:center;padding:16px">Nenhum alarme ativo</div>';
+}
+
+function scheduleAlarm(alarm) {
+  const [h, m] = alarm.time.split(':').map(Number);
+  const now = new Date(), target = new Date();
+  target.setHours(h, m, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  const delay = target - now;
+  setTimeout(() => {
+    const ctx = new AudioContext();
+    for (let i = 0; i < 5; i++) setTimeout(() => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.setValueAtTime(880, ctx.currentTime);
+      o.frequency.setValueAtTime(660, ctx.currentTime + 0.1);
+      g.gain.setValueAtTime(0.3, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      o.start(); o.stop(ctx.currentTime + 0.35);
+    }, i * 450);
+    addMsg(`🔔 ALARME: ${alarm.label} — ${alarm.time}`, 'bot');
+    nav('chat');
+    if (Notification.permission === 'granted')
+      new Notification(`⏰ ${alarm.label}`, { body: alarm.time });
+    alarms = alarms.filter(a => a.id !== alarm.id);
+    saveAlarms(); renderAlarms();
+  }, delay);
+}
+
+if ('Notification' in window && Notification.permission === 'default')
+  Notification.requestPermission();
+
+// ── LOCAL CONFIG ───────────────────────────
+function saveLocalConfig() {
+  const newPwd = document.getElementById('cfg-newpwd').value;
+  if (newPwd) { dashKey = newPwd; localStorage.setItem('mk', newPwd); }
+  addMsg('✅ Configurações salvas!', 'bot');
+  nav('chat');
+}
+</script>
+</body>
+</html>
