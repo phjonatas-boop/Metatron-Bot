@@ -1,31 +1,20 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Metatron Dash V7</title>
+    <title>Metatron V7</title>
     <style>
-        body { background: #05080f; color: #f7931a; font-family: sans-serif; margin: 0; overflow: hidden; }
-        header { padding: 15px; border-bottom: 1px solid #1a2540; text-align: center; font-weight: bold; }
-        #tv-chart { height: calc(100vh - 120px); width: 100%; }
-        .menu { position: fixed; bottom: 0; width: 100%; display: flex; background: #090d18; border-top: 1px solid #1a2540; }
-        .menu button { flex: 1; padding: 20px; background: none; border: none; color: #d0dff8; font-size: 12px; }
+        body { background: #05080f; color: #f7931a; font-family: sans-serif; margin: 0; }
+        header { padding: 15px; border-bottom: 1px solid #1a2540; text-align: center; }
+        #chart { height: 80vh; width: 100%; }
     </style>
 </head>
 <body>
     <header>METATRON V7 - TRADING ENGINE</header>
-    <div id="tv-chart"></div>
-    <div class="menu">
-        <button style="color:#f7931a">DASH</button>
-        <button>BOT ACTIVE</button>
-        <button>SETTINGS</button>
-    </div>
+    <div id="chart"></div>
     <script src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        new TradingView.widget({
-            "container_id": "tv-chart", "autosize": true, "symbol": "BINANCE:BTCUSDT",
-            "interval": "15", "theme": "dark", "style": "1", "locale": "br", "toolbar_bg": "#f1f3f6"
-        });
+        new TradingView.widget({"container_id":"chart","autosize":true,"symbol":"BINANCE:BTCUSDT","interval":"15","theme":"dark"});
     </script>
 </body>
 </html>
