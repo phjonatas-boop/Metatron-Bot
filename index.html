@@ -1,41 +1,28 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Tron Dash V7</title>
+    <title>Tron V7</title>
     <style>
-        body { background: #05080f; color: #d0dff8; font-family: sans-serif; margin: 0; }
-        header { padding: 15px; border-bottom: 1px solid #1a2540; display: flex; justify-content: space-between; background: #090d18; }
-        #chart { height: 75vh; width: 100%; background: #000; }
-        .footer { position: fixed; bottom: 0; width: 100%; display: flex; background: #090d18; border-top: 1px solid #1a2540; height: 60px; }
-        .footer button { flex: 1; background: none; border: none; color: #3a5070; font-weight: bold; }
-        .active { color: #f7931a !important; }
+        body { background: #05080f; color: #f7931a; font-family: sans-serif; margin: 0; }
+        header { padding: 15px; border-bottom: 1px solid #1a2540; text-align: center; }
+        #chart { height: 80vh; width: 100%; }
+        nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #090d18; }
+        nav button { flex: 1; padding: 20px; color: #d0dff8; background: none; border: none; }
     </style>
 </head>
 <body>
-    <header>
-        <div style="color:#f7931a; font-weight:900;">TRON V7</div>
-        <div id="status" style="color:#26a69a;">● MOTOR ATIVO</div>
-    </header>
+    <header>TRON V7 - TRADING ENGINE</header>
     <div id="chart"></div>
-    <div class="footer">
-        <button class="active">DASH</button>
-        <button onclick="changeSym('BINANCE:ETHUSDT')">ETH</button>
-        <button onclick="changeSym('CAPITALCOM:US500')">S&P 500</button>
-        <button>BOT</button>
-    </div>
+    <nav>
+        <button onclick="change('BINANCE:BTCUSDT')">BTC</button>
+        <button onclick="change('CAPITALCOM:US500')">S&P500</button>
+    </nav>
     <script src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        var widget;
-        function loadChart(sym) {
-            widget = new TradingView.widget({
-                "container_id": "chart", "autosize": true, "symbol": sym,
-                "interval": "15", "theme": "dark", "style": "1", "locale": "br"
-            });
-        }
-        function changeSym(s) { loadChart(s); }
-        loadChart("BINANCE:BTCUSDT");
+        var w;
+        function change(s) { w = new TradingView.widget({"container_id":"chart","autosize":true,"symbol":s,"interval":"15","theme":"dark"}); }
+        change("BINANCE:BTCUSDT");
     </script>
 </body>
 </html>
