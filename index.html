@@ -1,23 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Metatron Dash V7</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Tron Dash V7</title>
     <style>
-        body { background: #05080f; color: #f7931a; font-family: sans-serif; margin: 0; }
-        header { padding: 15px; border-bottom: 1px solid #1a2540; text-align: center; font-weight: bold; }
-        #tv-chart { height: 85vh; width: 100%; }
+        body { background: #05080f; color: #d0dff8; font-family: sans-serif; margin: 0; }
+        header { padding: 15px; border-bottom: 1px solid #1a2540; display: flex; justify-content: space-between; background: #090d18; }
+        #chart { height: 75vh; width: 100%; background: #000; }
+        .footer { position: fixed; bottom: 0; width: 100%; display: flex; background: #090d18; border-top: 1px solid #1a2540; height: 60px; }
+        .footer button { flex: 1; background: none; border: none; color: #3a5070; font-weight: bold; }
+        .active { color: #f7931a !important; }
     </style>
 </head>
 <body>
-    <header>METATRON V7 - ENGINE ATIVA</header>
-    <div id="tv-chart"></div>
+    <header>
+        <div style="color:#f7931a; font-weight:900;">TRON V7</div>
+        <div id="status" style="color:#26a69a;">● MOTOR ATIVO</div>
+    </header>
+    <div id="chart"></div>
+    <div class="footer">
+        <button class="active">DASH</button>
+        <button onclick="changeSym('BINANCE:ETHUSDT')">ETH</button>
+        <button onclick="changeSym('CAPITALCOM:US500')">S&P 500</button>
+        <button>BOT</button>
+    </div>
     <script src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        new TradingView.widget({
-            "container_id": "tv-chart", "autosize": true, "symbol": "BINANCE:BTCUSDT",
-            "interval": "15", "theme": "dark", "style": "1", "locale": "br"
-        });
+        var widget;
+        function loadChart(sym) {
+            widget = new TradingView.widget({
+                "container_id": "chart", "autosize": true, "symbol": sym,
+                "interval": "15", "theme": "dark", "style": "1", "locale": "br"
+            });
+        }
+        function changeSym(s) { loadChart(s); }
+        loadChart("BINANCE:BTCUSDT");
     </script>
 </body>
 </html>
